@@ -242,6 +242,15 @@ export const downloadRecipt = async (req, res) => {
     // 8. Finish generating the PDF
     doc.end();
   } catch (error) {
-    
+    console.error("Download receipt error:", error);
+
+    if (res.headersSent) {
+      return res.destroy(error);
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 }
