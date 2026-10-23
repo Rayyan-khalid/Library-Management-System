@@ -1,3 +1,4 @@
+import PDFDocument from "pdfkit";
 import User from "../models/userModels.js";
 import BorrowRequest from "../models/borrowRequestModel.js";
 import BorrowRecord from "../models/borrowRecordModel.js";
@@ -170,3 +171,77 @@ export const getBorrowedBooks = async (req, res) => {
   }
 };
 
+// Controller function for download Recipt
+    // 1. Get borrowing record ID from URL
+export const downloadRecipt = async (req, res) => {
+  try {
+    const {recordId} = req.params;
+
+    // 2. Find the record belonging to the logged-in user
+    const record = await BorrowRecord.findOne({
+      _id: recordId,
+      user: req.user.id,
+    }).populate("book","title  author").populate("user", "name email");
+
+    // 3. If record does not exist, return an error 
+    if (!record) {
+      return res.status(404).json({
+        success:false,
+        message: "Borrowing Record not found",
+      });
+    }
+
+    // 4. Set PDF download headers
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="receipt-${record._id}.pdf"`
+    );
+
+    // 5. Create the PDF document
+    const doc = new PDFDocument({ margin: 50 });
+
+    // 6. Send the generated PDF directly to the response
+    doc.pipe(res);
+
+    // 7. Add receipt information
+    doc.fontSize(20).text("Library Borrowing Receipt", {
+      align: "center",
+    });
+
+    doc.moveDown();
+
+    doc.fontSize(12).text(`Receipt ID: ${record._id}`);
+    doc.text(`Student Name: ${record.user.name}`);
+    doc.text(`Student Email: ${record.user.email}`);
+
+    doc.moveDown();
+
+    doc.fontSize(15).text("Book Details");
+    doc.fontSize(12).text(`Book Title: ${record.book.title}`);
+    doc.text(`Author: ${record.book.author}`);
+
+    doc.moveDown();
+
+    doc.text(
+      `Borrow Date: ${record.borrowDate.toLocaleDateString()}`
+    );
+    doc.text(
+      `Due Date: ${record.dueDate.toLocaleDateString()}`
+    );
+    doc.text(`Status: ${record.status}`);
+
+    if (record.returnDate) {
+      doc.text(
+        `Return Date: ${record.returnDate.toLocaleDateString()}`
+      );
+    }
+
+    doc.text(`Fine Amount: ${record.fineAmount ?? 0}`);
+
+    // 8. Finish generating the PDF
+    doc.end();
+  } catch (error) {
+    
+  }
+}
