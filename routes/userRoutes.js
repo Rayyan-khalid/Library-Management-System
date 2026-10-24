@@ -1,7 +1,7 @@
 import express from "express"
 import {protectRoute} from "../middleware/auth.js" 
 
-import { getProfile, updateProfile, submitBorrowRequest, downloadRecipt} from "../controller/userController.js"
+import { getProfile, updateProfile, submitBorrowRequest, downloadReceipt} from "../controller/userController.js"
 
 
 const userRouter = express.Router();

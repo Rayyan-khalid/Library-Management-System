@@ -173,7 +173,7 @@ export const getBorrowedBooks = async (req, res) => {
 
 // Controller function for download Recipt
     // 1. Get borrowing record ID from URL
-export const downloadRecipt = async (req, res) => {
+export const downloadReceipt = async (req, res) => {
   try {
     const {recordId} = req.params;
 
@@ -190,6 +190,10 @@ export const downloadRecipt = async (req, res) => {
         message: "Borrowing Record not found",
       });
     }
+
+    if (!record.book || !record.user) {
+     return res.status(404).json({ success: false, message: "Receipt data is no longer available" });
+   }
 
     // 4. Set PDF download headers
     res.setHeader("Content-Type", "application/pdf");
@@ -254,3 +258,5 @@ export const downloadRecipt = async (req, res) => {
     });
   }
 }
+
+// Controller function for 
